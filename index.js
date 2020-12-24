@@ -1,5 +1,8 @@
 "use strict";
 var express = require('express'); //import express, because I want easier management of get and post requests.  
+var bodyParser = require('body-parser');
+const { spawn } = require('child_process');
+
 
 var app = express();  //the express method returns an instance of a app object
 app.use(bodyParser.urlencoded({ extended: false }));  //use this because incoming data is urlencoded
@@ -25,20 +28,55 @@ var terminalWrite = function (res, Output, responseStatus) {
     res.end();
 };
 
+//ERROR trapping
+app.get('/getitem', function (req, res, next) {
+    let url = req.query.url;
+    if (url == undefined) {
+        terminalWrite(res, 'Request failed. No url provided', 500);
+        return;
+    }
+    // no errors move on
+    next();
+})
+
+
 //app event handlers go here
 app.get('/', function (req, res) {
     //what to do if request has no route ... show instructions
     var message = [];
-    message[0] = "Instructions go here.";
-    message[1] = "More instructions go here.";
+    message[0] = "GET /getitem provide url returns productTitle, productPrice, productAvailability";
+    message[1] = "";
     terminalWrite(res, message, 200);
+});
+
+app.get('/getitem', function (req, res) {
+    let dataToSend = [];
+    let url = req.query.url;
+    try {
+        // spawn new child process to call the python script
+        const python = spawn('python', ['scrape.py', url]);
+        // collect data from script
+        python.stdout.on('data', function (data) {
+            console.log('Pipe data from python script ...');
+            dataToSend = data.toString();
+        });
+        // in close event we are sure that stream from child process is closed
+        python.on('close', (code) => {
+            console.log(`child process close all stdio with code ${code}`);
+            // send data to browser
+            terminalWrite(res, JSON.parse(dataToSend), 200);
+        });
+    } catch (e) {
+        console.log(e);
+        terminalWrite(res, 'Internal server error with python script', 500);
+    }
 });
 
 //This piece of code creates the server  
 //and listens for a request on a port
 //we are also generating a console message once the 
 //server is created
-var server = app.listen(8200, function () {
+var server = app.listen(8222, function () {
     var port = server.address().port;
     console.log("The server is listening on port:" + port);
 });
