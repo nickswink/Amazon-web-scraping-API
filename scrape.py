@@ -5,11 +5,11 @@ import flask
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from flask import request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
-CORS(app)
+CORS(app, support_credentials=True)
 
 
 def get_product_elements(url):
