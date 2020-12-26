@@ -17,18 +17,41 @@ def get_product_elements(url):
     html = page.read().decode("utf-8")
     soup = BeautifulSoup(html, "html.parser")
 
-    product_title = soup.find('h1', class_='product-title')
-    product_price_dollars_raw = soup.find('li', class_='price-current').strong
-    product_price_cents = soup.find('li', class_='price-current').sup
-    product_ship = soup.find('div', class_='product-inventory').strong
+    # get product title
+    try:
+        product_title = soup.find('h1', class_='product-title').text
+    except:
+        product_title = "Title could not be found..."
 
-    product_price_dollars = product_price_dollars_raw.text.replace(',', '')
-    product_price = int(product_price_dollars) + \
-        float(product_price_cents.text)
+    # get product price
+    try:
+        product_price_cents = soup.find('li', class_='price-current').sup
+        product_price_dollars_raw = soup.find(
+            'li', class_='price-current').strong
+        product_price_dollars = product_price_dollars_raw.text.replace(',', '')
+        product_price = int(product_price_dollars) + \
+            float(product_price_cents.text)
+    except:
+        product_price = "Price could not be found..."
 
-    data = [{"productTitle": product_title.text,
+    # get product availability
+    try:
+        product_ship = soup.find('div', class_='product-inventory').strong
+    except:
+        product_ship = "Availability could not be found..."
+
+    # get product img
+    try:
+        product_img = soup.find(
+            'img', class_='product-view-img-original').get("src")
+    except:
+        product_img = "Image could not be found..."
+
+    data = [{"productTitle": product_title,
              "productPrice": product_price,
-             "productAvailability": product_ship.text}]
+             "productAvailability": product_ship.text,
+             "productImg": product_img,
+             "productUrl": url}]
     return data
 
 
