@@ -9,6 +9,7 @@ from flask_cors import CORS
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
+app.config['CORS_HEADERS'] = 'Content-Type'
 CORS(app)
 
 
@@ -18,11 +19,12 @@ def get_product_elements(url):
     soup = BeautifulSoup(html, "html.parser")
 
     product_title = soup.find('h1', class_='product-title')
-    product_price_dollars = soup.find('li', class_='price-current').strong
+    product_price_dollars_raw = soup.find('li', class_='price-current').strong
     product_price_cents = soup.find('li', class_='price-current').sup
     product_ship = soup.find('div', class_='product-inventory').strong
 
-    product_price = float(product_price_dollars.text) + \
+    product_price_dollars = product_price_dollars_raw.text.replace(',', '')
+    product_price = int(product_price_dollars) + \
         float(product_price_cents.text)
 
     data = [{"productTitle": product_title.text,
