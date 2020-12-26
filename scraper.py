@@ -3,7 +3,7 @@ import json
 import flask
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
-from flask import request, jsonify
+from flask import abort, request, jsonify
 from flask_cors import CORS
 
 app = flask.Flask(__name__)
@@ -55,6 +55,11 @@ def get_product_elements(url):
     return data
 
 
+@app.errorhandler(404)
+def resource_not_found(e):
+    return jsonify(error=str(e)), 404
+
+
 @app.route('/', methods=['GET'])
 def home():
     message = []
@@ -70,6 +75,11 @@ def api_product():
         return "Error: No url field provided. Please specify a url."
 
     product_elements = get_product_elements(url)
+
+    # error handling
+    if product_elements is None:
+        abort(404, description="Resource not found")
+
     return jsonify(product_elements)
 
 
