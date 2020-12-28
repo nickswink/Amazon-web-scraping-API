@@ -17,6 +17,8 @@ def get_product_elements(url):
     html = page.read().decode("utf-8")
     soup = BeautifulSoup(html, "html.parser")
 
+    product_quantity = 1
+
     # get product title
     try:
         product_title = soup.find('h1', class_='product-title').text
@@ -51,7 +53,8 @@ def get_product_elements(url):
              "productPrice": product_price,
              "productAvailability": product_ship.text,
              "productImg": product_img,
-             "productUrl": url}]
+             "productUrl": url,
+             "productQuantity": product_quantity}]
     return data
 
 
